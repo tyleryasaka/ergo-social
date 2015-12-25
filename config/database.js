@@ -1,3 +1,19 @@
+/*-------------------------------------------------------------*\
+|																																|
+|	Application:	ergo																						|
+|	Filename:			config/database.js															|
+|	Authors:			Tyler Yasaka																		|
+|																																|
+\*-------------------------------------------------------------*/
+
+/*
+ * Run this script to set up the Arango database. (Arangodb must be installed.)
+ * From unix terminal:
+ * 
+ * arangosh < database.config
+ * 
+ */
+
 //Config options
 var dbName = "ergo";
 var graphName = "ergoGraph";
@@ -12,6 +28,7 @@ if (allDatabases.indexOf(dbName) != -1) {
 	db._dropDatabase(dbName);
 }
 db._createDatabase(dbName);
+db._useDatabase(dbName);
 
 //Define valid edges for graph
 var edgeDefinitions = [
@@ -26,4 +43,4 @@ var allGraphs = graph_module._list();
 if(allGraphs.indexOf(graphName) != -1){
 	graph_module._drop(graphName, true);
 }
-var graph = graph_module._create(graphName,edgeDefinitions);
+graph_module._create(graphName,edgeDefinitions);
