@@ -25,14 +25,21 @@ var graphName = "ergoGraph";
  *	Node modules												*
 \*--------------------------------------*/
 
-var modules = {};
+var mod = {};
 
-modules.arangojs = require('arangojs');
-modules.async = require('async');
-modules.bodyParser = require('body-parser');
-modules.events = require('events');
-modules.express = require('express');
-modules.expressSession = require('express-session');
+mod.arangojs = require('arangojs');
+mod.async = require('async');
+mod.bodyParser = require('body-parser');
+mod.events = require('events');
+mod.express = require('express');
+mod.expressSession = require('express-session');
+
+
+/*--------------------------------------*\
+ *	Custom modules											*
+\*--------------------------------------*/
+
+mod.queries = require('./includes/queries.js');
 
 
 /*--------------------------------------*\
@@ -43,7 +50,7 @@ modules.expressSession = require('express-session');
 var arango = {};
 
 //arangodb is our database object
-arango.db = modules.arangojs();
+arango.db = mod.arangojs();
 
 arango.db.useDatabase(dbName);
 
@@ -70,19 +77,19 @@ edge = {
  *	Initializing app										*
 \*--------------------------------------*/
 
-var app = modules.express();
+var app = mod.express();
 
 //parse json post data
-app.use(modules.bodyParser.json());
+app.use(mod.bodyParser.json());
 
 //initialize session
-app.use(modules.expressSession({
+app.use(mod.expressSession({
 	secret:sessionSecret,
 	resave:false,
 	saveUninitialized:false
 }));
 
-app.use(modules.express.static(__dirname + '../public'));
+app.use(mod.express.static(__dirname + '../public'));
 
 //Begin listening for requests
 var server = app.listen(port, function () {
@@ -108,15 +115,15 @@ app.post('/0.0/argument', (req,res)=> {
 	var argument = {
 		title: title,
 		isDeductive: isDeductive,
-		isAtomic: true
+		isAtomic: false
 	}
 	
 	vertex.argument.save(argument).then( result => {
-		emitter.emit('saveArg', result.vertex._id);
+		emitter.emit('saveArg', result.vertex);
 	});
 	
-	emitter.on('saveArg', argId => {
-		modules.async.map(
+	/*emitter.on('saveArg', argId => {
+		mod.async.map(
 			premises,
 			function(premise,callback){
 				vertex.statement.save({content: premise}).then( result => {
@@ -130,7 +137,7 @@ app.post('/0.0/argument', (req,res)=> {
 	});
 	
 	emitter.on('savePremises', (argId, stmtIds) => {
-		modules.async.each(
+		mod.async.each(
 			stmtIds,
 			function(stmtId, callback){
 				edge.premise.save({}, stmtId, argId).then( () => {
@@ -141,25 +148,23 @@ app.post('/0.0/argument', (req,res)=> {
 				emitter.emit('connectPremises', argId);
 			}
 		);
-	});
+	});*/
 	
-	emitter.on('connectPremises', argId => {
+	emitter.on('saveArg', arg => {
 		vertex.statement.save({content: conclusion}).then( result => {
-			emitter.emit('saveConclusion', argId, result.vertex._id);
+			emitter.emit('saveConclusion', arg, result.vertex);
 		});
 	});
 	
-	emitter.on('saveConclusion', (argId, stmtId) => {
+	emitter.on('saveConclusion', (arg, conclusion) => {
 		edge.conclusion.save({}, argId, stmtId).then( () => {
-			emitter.emit('connectConclusion');
+			res.send({
+				argument: arg,
+				conclusion: conclusion
+			});
 		});
 	});
 	
-	emitter.on('connectConclusion', () => {
-		res.send({
-			success:true
-		});
-	});
 });
 
 app.get('/0.0/argument', (req,res)=> {
@@ -168,30 +173,86 @@ app.get('/0.0/argument', (req,res)=> {
 	});
 });
 
-/*app.get('/0.0/argument/:key', (req,res)=> {
+app.get('/0.0/argument/:key', (req,res)=> {
+	
+	var key = req.params.key;
+
+	arango.db.query(
+		mod.queries.getArgument,
+		{
+			graphName: graphName,
+			argId: "argument/"+key
+		}
+	).then( cursor => {
+		res.send(cursor._result[0]);
+	});
+	
+});
+
+app.put('/0.0/argument/:key', (req,res)=> {
+	
+	var key = req.params.key;
+
+	/*arango.db.query(
+		mod.queries.getArgument,
+		{
+			graphName: graphName,
+			argId: "argument/"+key
+		}
+	).then( cursor => {
+		res.send(cursor._result[0]);
+	});*/
+	
+});
+
+app.delete('/0.0/argument/:key', (req,res)=> {
+	
+	var key = req.params.key;
+
+	/*arango.db.query(
+		mod.queries.getArgument,
+		{
+			graphName: graphName,
+			argId: "argument/"+key
+		}
+	).then( cursor => {
+		res.send(cursor._result[0]);
+	});*/
+	
+});
+
+app.get('/0.0/profile', (req,res)=> {
+	//for now just return atomic arguments
+});
+
+app.put('/0.0/statement/:key', (req,res)=> {
 	
 	var key = req.params.key;
 	
+});
+
+app.post('/0.0/premise', (req,res)=> {
+	
+	var content = req.body.content;
+	var argId = req.body.argument;
+	
 	var emitter = newEmitter();
 	
-	vertex.argument.vertex(key).then( data => {
-		//emitter.emit('gotArgument', data.vertex);
-	});
 	
-	emitter.on('gotArgument', argument => {
-		db.query(
-			'FOR e IN GRAPH_NEIGHBORS('routeplanner', {}, {edgeExamples : [{distance: 600}, {distance: 700}]}) RETURN e',
-			{active: true}
-		).then(cursor => {
-			// cursor is a cursor for the query result
-			emitter.emit('',);
-		});
-	});
-});*/
+	
+});
+
+app.delete('/0.0/premise/:key', (req,res)=> {
+	
+	var key = req.params.key;
+	
+	//delete edge, and statement if it is not a conclusion
+	
+});
 
 /*------------------------------*\
  *	Global functions						*
 \*------------------------------*/
 var newEmitter = function() {
-	return new modules.events.EventEmitter();
+	return new mod.events.EventEmitter();
 }

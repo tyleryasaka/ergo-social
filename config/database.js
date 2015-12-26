@@ -34,8 +34,7 @@ db._useDatabase(dbName);
 var edgeDefinitions = [
 	graph_module._relation("premise", ["statement"], ["argument"]),
 	graph_module._relation("conclusion", ["argument"], ["statement"]),
-	graph_module._relation("comment", ["statement"], ["statement","argument"]),
-	graph_module._relation("author", ["statement", "argument"], ["user"])
+	graph_module._relation("comment", ["statement"], ["statement","argument"])
 ];
 
 //Create graph
