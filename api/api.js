@@ -96,18 +96,14 @@ var server = app.listen(port, function () {
  *	API													*
 \*------------------------------*/
 
-/*--------------------------------*\
-	* @desc creates an argument
-	* @input object data
-	* @output object response
-\*--------------------------------*/
 app.post('/0.0/argument', (req,res)=> {
-	var emitter = newEmitter();
 	
 	var title = req.body.title;
 	var isDeductive = req.body.isDeductive;
 	var premises = req.body.premises;
 	var conclusion = req.body.conclusion;
+	
+	var emitter = newEmitter();
 	
 	var argument = {
 		title: title,
@@ -165,6 +161,33 @@ app.post('/0.0/argument', (req,res)=> {
 		});
 	});
 });
+
+app.get('/0.0/argument', (req,res)=> {
+	vertex.argument.all().then( data => {
+		res.send(data._result);
+	});
+});
+
+/*app.get('/0.0/argument/:key', (req,res)=> {
+	
+	var key = req.params.key;
+	
+	var emitter = newEmitter();
+	
+	vertex.argument.vertex(key).then( data => {
+		//emitter.emit('gotArgument', data.vertex);
+	});
+	
+	emitter.on('gotArgument', argument => {
+		db.query(
+			'FOR e IN GRAPH_NEIGHBORS('routeplanner', {}, {edgeExamples : [{distance: 600}, {distance: 700}]}) RETURN e',
+			{active: true}
+		).then(cursor => {
+			// cursor is a cursor for the query result
+			emitter.emit('',);
+		});
+	});
+});*/
 
 /*------------------------------*\
  *	Global functions						*
