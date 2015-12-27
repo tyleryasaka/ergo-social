@@ -15,7 +15,7 @@
 var port = 8080;
 
 //from the express-session docs: 'used to sign the session ID cookie';
-var sessionSecret = '8029df8b';
+var sessionSecret = 'test123';
 
 var dbName = "ergo";
 var graphName = "ergoGraph";
@@ -110,31 +110,42 @@ var server = app.listen(port, function () {
 app.post('/0.0/argument', (req, res)=> {
 	
 	var argument = mod.models.argument(req.body.argument, author);
-	var conclusion = mod.models.statement(req.body.conclusion, author);
+	var isNewConclusion = req.body.isNewConclusion;
 	
-	var emitter = newEmitter();
+	mod.async.waterfall([
 	
-	//Create argument
-	vertex.argument.save(argument).then( result => {
-		emitter.emit('createArg', result.vertex);
-	});
-	
-	//Create statement
-	emitter.on('createArg', arg => {
-		vertex.statement.save(conclusion).then( result => {
-			emitter.emit('createStmt', arg, result.vertex);
-		});
-	});
-	
-	//Connect statement to argument as conclusion
-	emitter.on('createStmt', (arg, stmt) => {
-		edge.conclusion.save({}, arg._id, stmt._id).then( () => {
-			res.send({
-				argument: arg,
-				conclusion: stmt
+		//Create argument
+		function(callback) {
+			vertex.argument.save(argument).then( result => {
+				callback(null, result.vertex._id);
 			});
-		});
-	});
+		},
+		
+		//Create conclusion statement or use existing one
+		function(argId, callback) {
+			if(isNewConclusion){
+				var conclusion = mod.models.statement(req.body.conclusion, author);
+				vertex.statement.save(conclusion).then( result => {
+					callback(null, argId, result.vertex._id);
+				});
+			}
+			else{
+				var conclusionId = 'statement/' + req.body.conclusion;
+				callback(null, argId, conclusionId);
+			}
+		},
+		
+		//Connect statement to argument as conclusion
+		function(argId, stmtId) {
+			edge.conclusion.save({}, argId, stmtId).then( () => {
+				res.send({
+					argument: argId,
+					conclusion: stmtId
+				});
+			});
+		}
+	
+	]);
 	
 });
 
@@ -260,25 +271,36 @@ app.put('/0.0/statement/:key', (req, res)=> {
 
 app.post('/0.0/premise', (req, res)=> {
 	
+	var isNewStatement = req.body.isNewStatement;
 	var argId = "argument/"+req.body.argument;
-	var premise = mod.models.statement(req.body, author);
 	
-	var emitter = newEmitter();
+	mod.async.waterfall([
 	
-	//Create statement
-	vertex.statement.save(premise)
-	.then( result => {
-		emitter.emit('createStmt', result.vertex);
-	});
-	
-	//Connect to argument as premise
-	emitter.on('createStmt', stmt => {
-		edge.premise.save({}, stmt._id, argId).then( () => {
-			res.send({
-				premise: stmt
+		//Create new statement or get the specified id
+		function(callback) {
+			if(isNewStatement) {
+				var premise = mod.models.statement(req.body, author);
+				vertex.statement.save(premise)
+				.then( result => {
+					callback(null, result.vertex._id);
+				});	
+			}
+			else {
+				var statementId = 'statement/' + req.body.statement;
+				callback(null, statementId);
+			}
+		},
+		
+		//Connect statement to argument as premise
+		function(statementId) {
+			edge.premise.save({}, statementId, argId).then( result => {
+				res.send({
+					_id: statementId
+				});
 			});
-		});
-	});
+		}
+		
+	]);
 	
 });
 
