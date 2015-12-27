@@ -103,7 +103,7 @@ var server = app.listen(port, function () {
  *	API													*
 \*------------------------------*/
 
-app.post('/0.0/argument', (req,res)=> {
+app.post('/0.0/argument', (req, res)=> {
 	
 	var title = req.body.title;
 	var isDeductive = req.body.isDeductive;
@@ -118,62 +118,37 @@ app.post('/0.0/argument', (req,res)=> {
 		isAtomic: false
 	}
 	
+	//Create argument
 	vertex.argument.save(argument).then( result => {
-		emitter.emit('saveArg', result.vertex);
+		emitter.emit('createArg', result.vertex);
 	});
 	
-	/*emitter.on('saveArg', argId => {
-		mod.async.map(
-			premises,
-			function(premise,callback){
-				vertex.statement.save({content: premise}).then( result => {
-					callback(null, result.vertex._id);
-				});
-			},
-			function(err, stmtIds) {
-				emitter.emit('savePremises', argId, stmtIds);
-			}
-		);
-	});
-	
-	emitter.on('savePremises', (argId, stmtIds) => {
-		mod.async.each(
-			stmtIds,
-			function(stmtId, callback){
-				edge.premise.save({}, stmtId, argId).then( () => {
-					callback();
-				});
-			},
-			function(err) {
-				emitter.emit('connectPremises', argId);
-			}
-		);
-	});*/
-	
-	emitter.on('saveArg', arg => {
+	//Create statement
+	emitter.on('createArg', arg => {
 		vertex.statement.save({content: conclusion}).then( result => {
-			emitter.emit('saveConclusion', arg, result.vertex);
+			emitter.emit('createStmt', arg, result.vertex);
 		});
 	});
 	
-	emitter.on('saveConclusion', (arg, conclusion) => {
-		edge.conclusion.save({}, argId, stmtId).then( () => {
+	//Connect statement to argument as conclusion
+	emitter.on('createStmt', (arg, stmt) => {
+		edge.conclusion.save({}, arg._id, stmt._id).then( () => {
 			res.send({
 				argument: arg,
-				conclusion: conclusion
+				conclusion: stmt
 			});
 		});
 	});
 	
 });
 
-app.get('/0.0/argument', (req,res)=> {
+app.get('/0.0/argument', (req, res)=> {
 	vertex.argument.all().then( data => {
 		res.send(data._result);
 	});
 });
 
-app.get('/0.0/argument/:key', (req,res)=> {
+app.get('/0.0/argument/:key', (req, res)=> {
 	
 	var key = req.params.key;
 
@@ -189,64 +164,100 @@ app.get('/0.0/argument/:key', (req,res)=> {
 	
 });
 
-app.put('/0.0/argument/:key', (req,res)=> {
+app.put('/0.0/argument/:key', (req, res)=> {
 	
 	var key = req.params.key;
-
-	/*arango.db.query(
-		mod.queries.getArgument,
-		{
-			graphName: graphName,
-			argId: "argument/"+key
-		}
-	).then( cursor => {
-		res.send(cursor._result[0]);
-	});*/
 	
 });
 
-app.delete('/0.0/argument/:key', (req,res)=> {
+app.delete('/0.0/argument/:key', (req, res)=> {
 	
 	var key = req.params.key;
 
-	/*arango.db.query(
-		mod.queries.getArgument,
-		{
-			graphName: graphName,
-			argId: "argument/"+key
-		}
-	).then( cursor => {
-		res.send(cursor._result[0]);
-	});*/
 	
 });
 
-app.get('/0.0/profile', (req,res)=> {
+app.get('/0.0/profile', (req, res)=> {
 	//for now just return atomic arguments
 });
 
-app.put('/0.0/statement/:key', (req,res)=> {
+app.put('/0.0/statement/:key', (req, res)=> {
 	
 	var key = req.params.key;
 	
 });
 
-app.post('/0.0/premise', (req,res)=> {
+app.post('/0.0/premise', (req, res)=> {
 	
 	var content = req.body.content;
-	var argId = req.body.argument;
+	var argId = "argument/"+req.body.argument;
 	
 	var emitter = newEmitter();
 	
+	//Create statement
+	vertex.statement.save({content: content}).then( result => {
+		emitter.emit('createStmt', result.vertex);
+	});
 	
+	//Connect to argument as premise
+	emitter.on('createStmt', stmt => {
+		edge.premise.save({}, stmt._id, argId).then( () => {
+			res.send({
+				premise: stmt
+			});
+		});
+	});
 	
 });
 
-app.delete('/0.0/premise/:key', (req,res)=> {
+app.delete('/0.0/premise/:argKey/:premiseKey', (req, res)=> {
 	
-	var key = req.params.key;
+	var premiseId = 'statement/'+req.params.premiseKey;
+	var argId = 'argument/'+req.params.argKey;
 	
-	//delete edge, and statement if it is not a conclusion
+	var emitter = newEmitter();
+	
+	//First remove the connection between the premise statement and the argument
+	edge.premise.removeByExample(
+		{
+			_from: premiseId,
+			_to: argId
+		}
+	).then( cursor => {
+		emitter.emit('removedPremiseFromArgument');
+	});
+	
+	//Then check if this statement is the conclusion for any other arguments
+	emitter.on('removedPremiseFromArgument', () => {
+		arango.db.query(
+			mod.queries.isConclusion,
+			{
+				graphName: graphName,
+				stmtId: premiseId
+			}
+		).then( cursor => {
+			emitter.emit('checkedIfConclusion', cursor._result[0]);
+		});
+	});
+	
+	//If the statement is not a conclusion, we should remove it
+	emitter.on('checkedIfConclusion', isConclusion => {
+		if(!isConclusion){
+			vertex.statement.remove(premiseId)
+			.then( cursor => {
+				emitter.emit('removedPremiseStatement');
+			});
+		}
+		else{
+			emitter.emit('removedPremiseStatement');
+		}
+	});
+	
+	emitter.on('removedPremiseStatement', () => {
+		res.send({
+			success: true
+		});
+	});
 	
 });
 
