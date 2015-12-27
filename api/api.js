@@ -43,6 +43,7 @@ mod.expressSession = require('express-session');
 \*--------------------------------------*/
 
 mod.queries = require('./includes/queries.js');
+mod.models = require('./includes/models.js');
 
 
 /*--------------------------------------*\
@@ -108,20 +109,10 @@ var server = app.listen(port, function () {
 
 app.post('/0.0/argument', (req, res)=> {
 	
-	var title = req.body.title;
-	//var author = req.session.username;
-	var isDeductive = req.body.isDeductive;
-	var premises = req.body.premises;
-	var conclusion = req.body.conclusion;
+	var argument = mod.models.argument(req.body.argument, author);
+	var conclusion = mod.models.statement(req.body.conclusion, author);
 	
 	var emitter = newEmitter();
-	
-	var argument = {
-		title: title,
-		author: author,
-		isDeductive: isDeductive,
-		isAtomic: false
-	}
 	
 	//Create argument
 	vertex.argument.save(argument).then( result => {
@@ -130,7 +121,7 @@ app.post('/0.0/argument', (req, res)=> {
 	
 	//Create statement
 	emitter.on('createArg', arg => {
-		vertex.statement.save({content: conclusion, author: author}).then( result => {
+		vertex.statement.save(conclusion).then( result => {
 			emitter.emit('createStmt', arg, result.vertex);
 		});
 	});
@@ -172,6 +163,14 @@ app.get('/0.0/argument/:key', (req, res)=> {
 app.put('/0.0/argument/:key', (req, res)=> {
 	
 	var key = req.params.key;
+	var argument = mod.models.argument(req.body, author);
+	
+	vertex.argument.replace(key, argument)
+	.then( ()=> {
+		res.send({
+			success: true
+		});
+	});
 	
 });
 
@@ -194,17 +193,22 @@ app.delete('/0.0/argument/:key', (req, res)=> {
 	
 	//Then delete all of them
 	emitter.on('gotPremises', premises => {
-		mod.async.each(
-			premises,
-			function(premiseId, callback){
-				var premiseEmitter = newEmitter();
-				removePremise(premiseId, argId, author, premiseEmitter);
-				premiseEmitter.on('removedPremise', callback);
-			},
-			function(){
-				emitter.emit('removedPremises');
-			}
-		);
+		if(premises.length > 0){
+			mod.async.each(
+				premises,
+				function(premiseId, callback){
+					var premiseEmitter = newEmitter();
+					removePremise(premiseId, argId, author, premiseEmitter);
+					premiseEmitter.on('removedPremise', callback);
+				},
+				function(){
+					emitter.emit('removedPremises');
+				}
+			);
+		}
+		else{
+			emitter.emit('removedPremises');
+		}
 	});
 	
 	//Now get the conclusion of this argument
@@ -243,24 +247,27 @@ app.get('/0.0/profile', (req, res)=> {
 app.put('/0.0/statement/:key', (req, res)=> {
 	
 	var key = req.params.key;
+	var statement = mod.models.statement(req.body, author);
+	
+	vertex.statement.replace(key, statement)
+	.then( ()=> {
+		res.send({
+			success: true
+		});
+	});
 	
 });
 
 app.post('/0.0/premise', (req, res)=> {
 	
-	var content = req.body.content;
 	var argId = "argument/"+req.body.argument;
-	//var author = req.session.username;
+	var premise = mod.models.statement(req.body, author);
 	
 	var emitter = newEmitter();
 	
 	//Create statement
-	vertex.statement.save(
-		{
-			content: content,
-			author: author
-		}
-	).then( result => {
+	vertex.statement.save(premise)
+	.then( result => {
 		emitter.emit('createStmt', result.vertex);
 	});
 	
@@ -376,3 +383,4 @@ var removeConclusion = function(conclusionId, argId, authorId, emitter){
 		}
 	});
 }
+

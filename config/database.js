@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------*\
 |																																|
 |	Application:	ergo																						|
-|	Filename:			config/database.js															|
+|	Filename:			database.js																			|
 |	Authors:			Tyler Yasaka																		|
 |																																|
 \*-------------------------------------------------------------*/
