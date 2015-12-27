@@ -20,6 +20,9 @@ var sessionSecret = '8029df8b';
 var dbName = "ergo";
 var graphName = "ergoGraph";
 
+//temporary
+var author = 'tyler';
+
 
 /*--------------------------------------*\
  *	Node modules												*
@@ -106,6 +109,7 @@ var server = app.listen(port, function () {
 app.post('/0.0/argument', (req, res)=> {
 	
 	var title = req.body.title;
+	//var author = req.session.username;
 	var isDeductive = req.body.isDeductive;
 	var premises = req.body.premises;
 	var conclusion = req.body.conclusion;
@@ -114,6 +118,7 @@ app.post('/0.0/argument', (req, res)=> {
 	
 	var argument = {
 		title: title,
+		author: author,
 		isDeductive: isDeductive,
 		isAtomic: false
 	}
@@ -125,7 +130,7 @@ app.post('/0.0/argument', (req, res)=> {
 	
 	//Create statement
 	emitter.on('createArg', arg => {
-		vertex.statement.save({content: conclusion}).then( result => {
+		vertex.statement.save({content: conclusion, author: author}).then( result => {
 			emitter.emit('createStmt', arg, result.vertex);
 		});
 	});
@@ -172,8 +177,62 @@ app.put('/0.0/argument/:key', (req, res)=> {
 
 app.delete('/0.0/argument/:key', (req, res)=> {
 	
-	var key = req.params.key;
+	var argId = 'argument/'+req.params.key;
+	
+	var emitter = newEmitter();
 
+	//First get the premises of this argument
+	arango.db.query(
+		mod.queries.getPremisesForArgument,
+		{
+			graphName: graphName,
+			argId: argId
+		}
+	).then( cursor => {
+		emitter.emit('gotPremises', cursor._result);
+	});
+	
+	//Then delete all of them
+	emitter.on('gotPremises', premises => {
+		mod.async.each(
+			premises,
+			function(premiseId, callback){
+				var premiseEmitter = newEmitter();
+				removePremise(premiseId, argId, author, premiseEmitter);
+				premiseEmitter.on('removedPremise', callback);
+			},
+			function(){
+				emitter.emit('removedPremises');
+			}
+		);
+	});
+	
+	//Now get the conclusion of this argument
+	emitter.on('removedPremises', () => {
+		arango.db.query(
+			mod.queries.getConclusionForArgument,
+			{
+				graphName: graphName,
+				argId: argId
+			}
+		).then( cursor => {
+			emitter.emit('gotConclusion', cursor._result[0]);
+		});
+	});
+	
+	//And delete it as well
+	emitter.on('gotConclusion', conclusionId => {
+		removeConclusion(conclusionId, argId, author, emitter);
+	});
+	
+	//Finally we can delete the argument
+	emitter.on('removedConclusion', () => {
+		vertex.argument.remove(argId).then( () => {
+			res.send({
+				success: true
+			});
+		});
+	});
 	
 });
 
@@ -191,11 +250,17 @@ app.post('/0.0/premise', (req, res)=> {
 	
 	var content = req.body.content;
 	var argId = "argument/"+req.body.argument;
+	//var author = req.session.username;
 	
 	var emitter = newEmitter();
 	
 	//Create statement
-	vertex.statement.save({content: content}).then( result => {
+	vertex.statement.save(
+		{
+			content: content,
+			author: author
+		}
+	).then( result => {
 		emitter.emit('createStmt', result.vertex);
 	});
 	
@@ -217,6 +282,24 @@ app.delete('/0.0/premise/:argKey/:premiseKey', (req, res)=> {
 	
 	var emitter = newEmitter();
 	
+	removePremise(premiseId, argId, author, emitter);
+	
+	emitter.on('removedPremise', () => {
+		res.send({
+			success: true
+		});
+	});
+	
+});
+
+/*------------------------------*\
+ *	Global functions						*
+\*------------------------------*/
+var newEmitter = function() {
+	return new mod.events.EventEmitter();
+}
+
+var removePremise = function(premiseId, argId, authorId, emitter){
 	//First remove the connection between the premise statement and the argument
 	edge.premise.removeByExample(
 		{
@@ -233,7 +316,8 @@ app.delete('/0.0/premise/:argKey/:premiseKey', (req, res)=> {
 			mod.queries.isConclusion,
 			{
 				graphName: graphName,
-				stmtId: premiseId
+				stmtId: premiseId,
+				authorId: authorId
 			}
 		).then( cursor => {
 			emitter.emit('checkedIfConclusion', cursor._result[0]);
@@ -245,25 +329,50 @@ app.delete('/0.0/premise/:argKey/:premiseKey', (req, res)=> {
 		if(!isConclusion){
 			vertex.statement.remove(premiseId)
 			.then( cursor => {
-				emitter.emit('removedPremiseStatement');
+				emitter.emit('removedPremise');
 			});
 		}
 		else{
-			emitter.emit('removedPremiseStatement');
+			emitter.emit('removedPremise');
 		}
 	});
+}
+
+var removeConclusion = function(conclusionId, argId, authorId, emitter){
+	//First remove the connection between the premise statement and the argument
+	edge.conclusion.removeByExample(
+		{
+			_from: argId,
+			_to: conclusionId
+		}
+	).then( cursor => {
+		emitter.emit('removedConclusionFromArgument');
+	});
 	
-	emitter.on('removedPremiseStatement', () => {
-		res.send({
-			success: true
+	//Then check if this statement is the conclusion for any other arguments
+	emitter.on('removedConclusionFromArgument', () => {
+		arango.db.query(
+			mod.queries.isPremise,
+			{
+				graphName: graphName,
+				stmtId: conclusionId,
+				authorId: authorId
+			}
+		).then( cursor => {
+			emitter.emit('checkedIfPremise', cursor._result[0]);
 		});
 	});
 	
-});
-
-/*------------------------------*\
- *	Global functions						*
-\*------------------------------*/
-var newEmitter = function() {
-	return new mod.events.EventEmitter();
+	//If the statement is not a conclusion, we should remove it
+	emitter.on('checkedIfPremise', isPremise => {
+		if(!isPremise){
+			vertex.statement.remove(conclusionId)
+			.then( cursor => {
+				emitter.emit('removedConclusion');
+			});
+		}
+		else{
+			emitter.emit('removedConclusion');
+		}
+	});
 }
