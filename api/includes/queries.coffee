@@ -1,14 +1,11 @@
-#-------------------------------------------------------------
-#																															
-#	Application:	ergo																					
-#	Filename:			queries.coffee																		
-#	Authors:			Tyler Yasaka																	
-#																															
-#-------------------------------------------------------------
-
-#Compiles into queries.js
-
-#All AQL queries are retrieved from here
+#
+# @file: queries.coffee
+# 
+# @application: ergo
+# @author: Tyler Yasaka
+# @description compiles into queries.js
+# 	all AQL quries are retrieved from here
+#
 
 exports.getArgument =
 "
@@ -61,26 +58,16 @@ exports.getArgument =
 	}
 "
 
-exports.isConclusion =
+# returns true if the statement is not connected to any arguments owned by the user
+exports.isOrphaned =
 "
 RETURN (
-	FOR e IN GRAPH_EDGES(@graphName, @stmtId, {edgeCollectionRestriction: 'conclusion'})
-		FILTER e.author == @authorId
-		COLLECT WITH COUNT INTO length
-		RETURN length
-)[0] != 0
-"
-
-#Checks if conclusion is not only a premise, but also a premise owned by the same user
-#(Premises owned by other users are ignored.)
-exports.isPremise =
-"
-RETURN (
-	FOR e IN GRAPH_EDGES(@graphName, @stmtId, {edgeCollectionRestriction: 'premise'})
-		FILTER e.author == @authorId
-		COLLECT WITH COUNT INTO length
-		RETURN length
-)[0] != 0
+	FOR v IN GRAPH_NEIGHBORS(@graphName, @stmtId, {vertexCollectionRestriction: 'argument'})
+		FOR a IN argument
+			FILTER a._id == v AND a.author == @authorId
+			COLLECT WITH COUNT INTO length
+			RETURN length
+)[0] == 0
 "
 
 exports.getPremisesForArgument =
