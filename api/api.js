@@ -90,7 +90,7 @@ APP.use(MOD.expressSession({
 	saveUninitialized: false
 }));
 
-APP.use(MOD.express.static(__dirname + '../public'));
+APP.use(MOD.express.static(__dirname + '/../public'));
 
 //Begin listening for requests
 var SERVER = APP.listen(PORT, () => {
