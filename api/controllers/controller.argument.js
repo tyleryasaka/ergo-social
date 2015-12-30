@@ -13,12 +13,12 @@ var QUERY = require('../queries/index.js');
  * @function create
  * @desc creates an argument vertex, a statement vertex, and a conclusion edge
  * 	between the argument and the statement
- * @param req => premise to remove
- * @param argId => argument to remove from
- * @param authorId => author of argument
- * @param callback => function to call (without parameters) when done
+ * @param argument => argument object
+ * @param conclusion => conclusion statement object
+ * @param author => author of argument
+ * @param callback => function to call (with result parameter) when done
 \******************************************************************************/
-exports.create = function(argument, conclusion, callback) {
+exports.create = function(argument, conclusion, author, callback) {
 	
 	ASYNC.waterfall([
 	
@@ -36,28 +36,52 @@ exports.create = function(argument, conclusion, callback) {
 					next(null, argId, result.vertex._id);
 				});
 			} else {
-				var stmtId = 'statement/' + conclusion._key;
-				next(null, argId, stmtId);
+				//ensure the conclusion is owned by this user
+				DB.v.statement.byExample(
+					{_key: conclusion._key, author: author}
+				).then( data => {
+					var stmtId = null;
+					if(data._result.length > 0){
+						stmtId = 'statement/' + conclusion._key;
+					}
+					next(null, argId, stmtId);
+				});
 			}
 		},
 		
 		// Connect statement to argument as conclusion
 		function(argId, stmtId) {
-			DB.e.conclusion.save({}, argId, stmtId).then( () => {
-				var result = {argument:argId, conclusion:stmtId};
-				callback(result);
-			});
+			if(stmtId) {
+				DB.e.conclusion.save({author: author}, argId, stmtId).then( () => {
+					var result = {argument: argId, conclusion: stmtId};
+					callback(result);
+				});
+			}	else {
+				callback( {success: false} );
+			}
 		}
 	
 	]);
 }
 
-exports.list = function(callback) {
-	DB.v.argument.all().then( data => {
+/******************************************************************************\
+ * @function list
+ * @desc lists arguments authored by user
+ * @param author => fetch arguments by this user
+ * @param callback => function to call (with result parameter) when done
+\******************************************************************************/
+exports.list = function(author, callback) {
+	DB.v.argument.byExample({author: author}).then( data => {
 		callback(data._result);
 	});
 }
 
+/******************************************************************************\
+ * @function get
+ * @desc get details of a specific argument
+ * @param key => identifier of argument
+ * @param callback => function to call (with result parameter) when done
+\******************************************************************************/
 exports.get = function(key, callback) {
 	DB.conn.query(
 		QUERY.getArgument,
@@ -70,15 +94,32 @@ exports.get = function(key, callback) {
 	});
 }
 
-// Needs to check for ownership of argument!
-exports.update = function(key, argument, callback) {
-	DB.v.argument.replace(key, argument).then( ()=> {
-		callback( {success:true} );
+/******************************************************************************\
+ * @function update
+ * @desc modify the metadata of an argument
+ * @param key => identifier of argument
+ * @param argument => argument object
+ * @param author => author of argument
+ * @param callback => function to call (with result parameter) when done
+\******************************************************************************/
+exports.update = function(key, argument, author, callback) {
+	DB.v.argument.replaceByExample(
+		{_key: key, author: author},
+		argument
+	).then( ()=> {
+		callback( {success: true} );
 	});
 }
 
-// Needs to check for ownership of argument!
-exports.remove = function(argKey, author,callback) {
+/******************************************************************************\
+ * @function remove
+ * @desc remove an argument (and associated premises/conclusion not otherwised 
+ * 	referenced by arguments of the owner)
+ * @param argKey => argument identifier
+ * @param author => author of argument
+ * @param callback => function to call (with result parameter) when done
+\******************************************************************************/
+exports.remove = function(argKey, author, callback) {
 	var argId = 'argument/' + argKey;
 	
 	ASYNC.waterfall([
@@ -133,8 +174,10 @@ exports.remove = function(argKey, author,callback) {
 		
 		// Finally we can delete the argument
 		function() {
-			DB.v.argument.remove(argId).then( () => {
-				callback( {success:true} );
+			DB.v.argument.removeByExample(
+				{_id: argId, author: author}
+			).then( () => {
+				callback( {success: true} );
 			});
 		}
 		

@@ -18,10 +18,9 @@ var author = 'tyler';
  * node modules
 \******************************************************************************/
 
-var MOD = {};
-MOD.bodyParser = require('body-parser');
-MOD.express = require('express');
-MOD.expressSession = require('express-session');
+BODY_PARSER = require('body-parser');
+EXPRESS = require('express');
+EXPRESS_SESSION = require('express-session');
 
 /******************************************************************************\
  * custom modules
@@ -33,20 +32,20 @@ var CONTROLLER = require('./controllers/index.js');
  * initializing api
 \******************************************************************************/
  
-var APP = MOD.express();
+var APP = EXPRESS();
 
 // parse json post data
-APP.use(MOD.bodyParser.json());
+APP.use(BODY_PARSER.json());
 
 // initialize session
-APP.use(MOD.expressSession({
+APP.use(EXPRESS_SESSION({
 	secret: SESSION_SECRET,
 	resave: false,
 	saveUninitialized: false
 }));
 
 // serve static content
-APP.use(MOD.express.static(__dirname + '/../public'));
+APP.use(EXPRESS.static(__dirname + '/../public'));
 
 //Begin listening for requests
 var SERVER = APP.listen(PORT, () => {
@@ -63,13 +62,13 @@ APP.post('/0.0/argument', (req, res) => {
 	var argument = FILTER.argument(req.body.argument, author);
 	var conclusion = FILTER.conclusion(req.body.conclusion, author);
 	
-	CONTROLLER.argument.create(argument, conclusion, result => {
+	CONTROLLER.argument.create(argument, conclusion, author, result => {
 		res.send(result);
 	});
 });
 
 APP.get('/0.0/argument', (req, res) => {
-	CONTROLLER.argument.list( result => {
+	CONTROLLER.argument.list( author, result => {
 		res.send(result);
 	});
 });
@@ -86,7 +85,7 @@ APP.put('/0.0/argument/:key', (req, res) => {
 	var key = req.params.key;
 	var argument = FILTER.argument(req.body, author);
 	
-	CONTROLLER.argument.update(key, argument, result => {
+	CONTROLLER.argument.update(key, argument, author, result => {
 		res.send(result);
 	});
 });
@@ -104,7 +103,7 @@ APP.delete('/0.0/argument/:key', (req, res) => {
 APP.post('/0.0/premise', (req, res) => {
 	var premise = FILTER.premise(req.body, author);
 	
-	CONTROLLER.premise.create(premise, result => {
+	CONTROLLER.premise.create(premise, author, result => {
 		res.send(result);
 	});
 });
@@ -122,7 +121,7 @@ APP.put('/0.0/statement/:key', (req, res) => {
 	var key = req.params.key;
 	var statement = FILTER.statement(req.body, author);
 	
-	CONTROLLER.statement.update(key, statement, result => {
+	CONTROLLER.statement.update(key, statement, author, result => {
 		res.send(result);
 	});
 });
@@ -190,8 +189,7 @@ FILTER.premise = function(input, author) {
 	if(input.statement){
 		if(input.statement._key){
 			output.statement._key = input.statement._key;
-		}
-		else{
+		} else {
 			output.statement = FILTER.statement(input.statement, author);
 		}
 	}
@@ -212,8 +210,7 @@ FILTER.conclusion = function(input, author) {
 	
 	if(typeof input._key != 'undefined'){
 		output._key = input._key;
-	}
-	else{
+	} else {
 		output = FILTER.statement(input, author);
 	}
 	
