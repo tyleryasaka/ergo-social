@@ -1,7 +1,6 @@
 /******************************************************************************\
  * @file api/controllers/controller.premise.js
  * @description premise controller
- * @application ergo
  * @author Tyler Yasaka 
 \******************************************************************************/
 
@@ -9,48 +8,41 @@ var ASYNC = require('async');
 var LIB = require('./lib.js');
 var DB = require('../database/index.js');
 
-exports.create = function(req, res) {
-	
-	var isNewStatement = req.body.isNewStatement;
-	var argId = "argument/" + req.body.argument;
+exports.create = (premise, callback) => {
+	var argKey = premise.argKey;
+	var statement = premise.statement;
 	
 	ASYNC.waterfall([
 	
 		// Create new statement or get the specified id
 		function(next) {
-			if(isNewStatement) {
-				var premise = LIB.filter.statement(req.body, LIB.author);
-				DB.v.statement.save(premise)
+			if(typeof statement._key == 'undefined') {
+				DB.v.statement.save(statement)
 				.then( result => {
-					next(null, result.vertex._id);
+					next(null, result.vertex._key);
 				});	
 			} else {
-				var statementId = 'statement/' + req.body.statement;
-				next(null, statementId);
+				next(null, statement._key);
 			}
 		},
 		
 		// Connect statement to argument as premise
-		function(statementId) {
-			DB.e.premise.save({}, statementId, argId).then( result => {
-				res.send({
-					_id: statementId
-				});
+		function(stmtKey) {
+			var argId = 'argument/' + argKey;
+			var stmtId = 'statement/' + stmtKey;
+			DB.e.premise.save({}, stmtId, argId).then( result => {
+				callback( {_id: stmtId} );
 			});
 		}
 		
 	]);
 }
 
-exports.remove = function(req, res) {
+exports.remove = (argKey, premiseKey, author, callback) => {
+	var argId = 'argument/' + argKey;
+	var premiseId = 'statement/' + premiseKey;
 	
-	var premiseId = 'statement/' + req.params.premiseKey;
-	var argId = 'argument/' + req.params.argKey;
-	
-	LIB.removePremise(premiseId, argId, LIB.author, () => {
-		res.send({
-			success: true
-		});
+	LIB.removePremise(premiseId, argId, author, () => {
+		callback( {success: true} );
 	});
-	
 }

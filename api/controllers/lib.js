@@ -1,28 +1,18 @@
 /******************************************************************************\
  * @file api/controllers/lib.js
- * 
  * @description resuable data/functions for controllers
- * @application ergo
  * @author Tyler Yasaka 
 \******************************************************************************/
-
 
 var ASYNC = require('async');
 var DB = require('../database/index.js');
 var QUERY = require('../queries/index.js');
 
-/*--------------------------------------*\
- * Configuration options
-\*--------------------------------------*/
-
 //temporary
 exports.author = 'tyler';
 
-exports.filter = require('./lib.filter.js');
-
 /******************************************************************************\
  * @function removePremise
- * 
  * @desc removes a premise from an argument; deletes statement only if
  * 	it is not connected to any other arguments by that user
  * @param premiseId => premise to remove
@@ -30,6 +20,9 @@ exports.filter = require('./lib.filter.js');
  * @param authorId => author of argument
  * @param callback => function to call (without parameters) when done
 \******************************************************************************/
+
+// ownership security!
+
 exports.removePremise = function(premiseId, argId, authorId, callback) {
 	
 	ASYNC.waterfall([
@@ -76,7 +69,6 @@ exports.removePremise = function(premiseId, argId, authorId, callback) {
 
 /******************************************************************************\
  * @function removeConclusion
- * 
  * @desc removes a conclusion from an argument; deletes statement only
  * 	if it is not connected to any other arguments by that user
  * @param conclusionId => conclusion to remove
@@ -84,6 +76,9 @@ exports.removePremise = function(premiseId, argId, authorId, callback) {
  * @param authorId => author of argument
  * @param callback => function to call (without parameters) when done
  \******************************************************************************/
+ 
+// ownsership security!
+ 
 exports.removeConclusion = function(conclusionId, argId, authorId, callback) {
 	
 	ASYNC.waterfall([

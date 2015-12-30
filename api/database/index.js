@@ -1,7 +1,6 @@
 /******************************************************************************\
  * @file api/database/index.js
  * @description ArangoDB database connector
- * @application ergo
  * @author Tyler Yasaka 
 \******************************************************************************/
 

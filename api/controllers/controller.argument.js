@@ -1,7 +1,6 @@
 /******************************************************************************\
  * @file api/controllers/controller.argument.js
  * @description argument controller
- * @application ergo
  * @author Tyler Yasaka 
 \******************************************************************************/
 
@@ -10,10 +9,16 @@ var LIB = require('./lib.js');
 var DB = require('../database/index.js');
 var QUERY = require('../queries/index.js');
 
-exports.create = function(req, res) {
-	
-	var argument = LIB.filter.argument(req.body.argument, LIB.author);
-	var isNewConclusion = req.body.isNewConclusion;
+/******************************************************************************\
+ * @function create
+ * @desc creates an argument vertex, a statement vertex, and a conclusion edge
+ * 	between the argument and the statement
+ * @param req => premise to remove
+ * @param argId => argument to remove from
+ * @param authorId => author of argument
+ * @param callback => function to call (without parameters) when done
+\******************************************************************************/
+exports.create = function(argument, conclusion, callback) {
 	
 	ASYNC.waterfall([
 	
@@ -26,41 +31,34 @@ exports.create = function(req, res) {
 		
 		// Create conclusion statement or use existing one
 		function(argId, next) {
-			if(isNewConclusion) {
-				var conclusion = LIB.filter.statement(req.body.conclusion, LIB.author);
+			if(typeof conclusion._key == 'undefined') {
 				DB.v.statement.save(conclusion).then( result => {
 					next(null, argId, result.vertex._id);
 				});
 			} else {
-				var conclusionId = 'statement/' + req.body.conclusion;
-				next(null, argId, conclusionId);
+				var stmtId = 'statement/' + conclusion._key;
+				next(null, argId, stmtId);
 			}
 		},
 		
 		// Connect statement to argument as conclusion
 		function(argId, stmtId) {
 			DB.e.conclusion.save({}, argId, stmtId).then( () => {
-				res.send({
-					argument: argId,
-					conclusion: stmtId
-				});
+				var result = {argument:argId, conclusion:stmtId};
+				callback(result);
 			});
 		}
 	
 	]);
-	
 }
 
-exports.list = function(req, res) {
+exports.list = function(callback) {
 	DB.v.argument.all().then( data => {
-		res.send(data._result);
+		callback(data._result);
 	});
 }
 
-exports.get = function(req, res) {
-	
-	var key = req.params.key;
-
+exports.get = function(key, callback) {
 	DB.conn.query(
 		QUERY.getArgument,
 		{
@@ -68,35 +66,31 @@ exports.get = function(req, res) {
 			argId: "argument/" + key
 		}
 	).then( cursor => {
-		res.send(cursor._result[0]);
+		callback(cursor._result[0]);
 	});
-	
 }
 
-exports.update = function(req, res) {
-	
-	var key = req.params.key;
-	var argument = LIB.filter.argument(req.body, LIB.author);
-	
+// Needs to check for ownership of argument!
+exports.update = function(key, argument, callback) {
 	DB.v.argument.replace(key, argument).then( ()=> {
-		res.send({
-			success: true
-		});
+		callback( {success:true} );
 	});
-	
 }
 
-exports.remove = function(req, res) {
-	
-	var argId = 'argument/' + req.params.key;
+// Needs to check for ownership of argument!
+exports.remove = function(argKey, author,callback) {
+	var argId = 'argument/' + argKey;
 	
 	ASYNC.waterfall([
-
+	
 		// First get the premises of this argument
 		function(next) {
 			DB.conn.query(
 				QUERY.getPremisesForArgument,
-				{graphName:DB.graphName, argId:argId}
+				{
+					graphName: DB.graphName,
+					argId: argId
+				}
 			).then( cursor => {
 				next(null, cursor._result);
 			});
@@ -108,7 +102,7 @@ exports.remove = function(req, res) {
 				ASYNC.each(
 					premises,
 					function(premiseId, callback){
-						LIB.removePremise(premiseId, argId, LIB.author, callback);
+						LIB.removePremise(premiseId, argId, author, callback);
 					},
 					function(){
 						next(null);
@@ -134,18 +128,15 @@ exports.remove = function(req, res) {
 		
 		// And delete it as well
 		function(conclusionId, next) {
-			LIB.removeConclusion(conclusionId, argId, LIB.author, next);
+			LIB.removeConclusion(conclusionId, argId, author, next);
 		},
 		
 		// Finally we can delete the argument
 		function() {
 			DB.v.argument.remove(argId).then( () => {
-				res.send({
-					success: true
-				});
+				callback( {success:true} );
 			});
 		}
-	
+		
 	]);
-	
 }
