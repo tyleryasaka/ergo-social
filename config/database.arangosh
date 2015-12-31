@@ -1,16 +1,16 @@
 /*-------------------------------------------------------------*\
 |																																|
 |	Application:	ergo																						|
-|	Filename:			database.js																			|
+|	Filename:			database.arangosh																|
 |	Authors:			Tyler Yasaka																		|
 |																																|
 \*-------------------------------------------------------------*/
 
 /*
  * Run this script to set up the Arango database. (Arangodb must be installed.)
- * From unix terminal:
+ * From unix terminal, run this command from directory of this file:
  * 
- * arangosh < database.config
+ * arangosh < database.arangosh
  * 
  */
 
@@ -33,7 +33,7 @@ db._useDatabase(dbName);
 //Define valid edges for graph
 var edgeDefinitions = [
 	graph_module._relation("premise", ["statement"], ["argument"]),
-	graph_module._relation("conclusion", ["argument"], ["statement"]),
+	graph_module._relation("conclusion", ["statement"], ["argument"]),
 	graph_module._relation("comment", ["statement"], ["statement","argument"])
 ];
 

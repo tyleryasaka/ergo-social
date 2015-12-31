@@ -7,6 +7,12 @@
 # 	all AQL quries are retrieved from here
 #
 
+#
+# to compile this into the javascript file:
+#
+# 	coffee --compile index.coffee
+#
+
 exports.getArgument =
 "
 	RETURN {
@@ -58,15 +64,20 @@ exports.getArgument =
 	}
 "
 
-# returns true if the statement is not connected to any arguments owned by the user
+# returns true if the statement is not used as a premise, conclusion, or comment
+#	for the specified userara
 exports.isOrphaned =
 "
 RETURN (
-	FOR v IN GRAPH_NEIGHBORS(@graphName, @stmtId, {vertexCollectionRestriction: 'argument'})
-		FOR a IN argument
-			FILTER a._id == v AND a.author == @authorId
-			COLLECT WITH COUNT INTO length
-			RETURN length
+	FOR e IN GRAPH_EDGES(
+		@graphName, @stmtId,
+		{
+			edgeCollectionRestriction: ['premise', 'conclusion', 'comment'],
+			edgeExamples: [{author: @authorId}]
+		}
+	)
+		COLLECT WITH COUNT INTO length
+		RETURN length
 )[0] == 0
 "
 

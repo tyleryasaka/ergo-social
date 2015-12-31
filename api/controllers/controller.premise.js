@@ -59,7 +59,7 @@ exports.remove = (argKey, premiseKey, author, callback) => {
 	var argId = 'argument/' + argKey;
 	var premiseId = 'statement/' + premiseKey;
 	
-	LIB.removePremise(premiseId, argId, author, () => {
+	LIB.removeEdge('premise', premiseId, argId, author, () => {
 		callback( {success: true} );
 	});
 }

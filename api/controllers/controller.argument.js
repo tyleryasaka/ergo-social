@@ -52,7 +52,7 @@ exports.create = function(argument, conclusion, author, callback) {
 		// Connect statement to argument as conclusion
 		function(argId, stmtId) {
 			if(stmtId) {
-				DB.e.conclusion.save({author: author}, argId, stmtId).then( () => {
+				DB.e.conclusion.save({author: author}, stmtId, argId).then( () => {
 					var result = {argument: argId, conclusion: stmtId};
 					callback(result);
 				});
@@ -143,11 +143,9 @@ exports.remove = function(argKey, author, callback) {
 				ASYNC.each(
 					premises,
 					function(premiseId, callback){
-						LIB.removePremise(premiseId, argId, author, callback);
+						LIB.removeEdge('premise', premiseId, argId, author, callback);
 					},
-					function(){
-						next(null);
-					}
+					next
 				);
 			} else {
 				next(null);
@@ -169,7 +167,7 @@ exports.remove = function(argKey, author, callback) {
 		
 		// And delete it as well
 		function(conclusionId, next) {
-			LIB.removeConclusion(conclusionId, argId, author, next);
+			LIB.removeEdge('conclusion', conclusionId, argId, author, next);
 		},
 		
 		// Finally we can delete the argument
