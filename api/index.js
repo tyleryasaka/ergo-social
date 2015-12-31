@@ -117,6 +117,30 @@ APP.delete('/0.0/premise/:argKey/:premiseKey', (req, res) => {
 	});
 });
 
+APP.post('/0.0/comment', (req, res) => {
+	var statement = FILTER.statement(req.body.statement, author);
+	var subjectId = req.body.subject._id;
+	
+	CONTROLLER.comment.create(statement, subjectId, author, result => {
+		res.send(result);
+	});
+});
+
+APP.get('/0.0/comment', (req, res) => {
+	CONTROLLER.comment.list( author, result => {
+		res.send(result);
+	});
+});
+
+APP.delete('/0.0/comment/:subjectType/:subjectKey/:commentKey', (req, res) => {
+	var subjectId = req.params.subjectType + '/' + req.params.subjectKey;
+	var commentKey = req.params.commentKey;
+	
+	CONTROLLER.comment.remove(subjectId, commentKey, author, result => {
+		res.send(result);
+	});
+});
+
 APP.put('/0.0/statement/:key', (req, res) => {
 	var key = req.params.key;
 	var statement = FILTER.statement(req.body, author);

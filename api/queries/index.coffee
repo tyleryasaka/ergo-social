@@ -17,15 +17,13 @@ exports.getArgument =
 "
 	RETURN {
 	
-		argument:
-		(
+		argument: (
 			FOR a IN argument
 				FILTER a._id == @argId
 				RETURN a
 		)[0],
 		
-		premises:
-		(
+		premises: (
 				FOR premiseStatement IN GRAPH_NEIGHBORS(@graphName, @argId, {edgeCollectionRestriction: 'premise'})
 					RETURN
 					{
@@ -43,8 +41,7 @@ exports.getArgument =
 					}
 		),
 		
-		conclusion:
-		(
+		conclusion: (
 			FOR conclusionStatement IN GRAPH_NEIGHBORS(@graphName, @argId, {edgeCollectionRestriction: 'conclusion'})
 				RETURN
 				{
@@ -53,14 +50,28 @@ exports.getArgument =
 						FOR s IN statement
 							FILTER s._id == conclusionStatement
 							RETURN s
-					)[0],
-					superargument:
-					(
-						FOR superargument IN GRAPH_NEIGHBORS(@graphName, conclusionStatement, {edgeCollectionRestriction: 'premise'})
-							RETURN superargument
-					)
+					)[0]
 				}
-		)[0]
+		)[0],
+		
+		comments: (
+				FOR commentStatement IN GRAPH_NEIGHBORS(@graphName, @argId, {edgeCollectionRestriction: 'comment'})
+					RETURN
+					{
+						statement:
+						(
+							FOR s IN statement
+								FILTER s._id == commentStatement
+								RETURN s
+						)[0],
+						subargument:
+						(
+							FOR subargument IN GRAPH_NEIGHBORS(@graphName, commentStatement, {edgeCollectionRestriction: 'conclusion'})
+								RETURN subargument
+						)
+					}
+		)
+		
 	}
 "
 

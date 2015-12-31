@@ -12,9 +12,9 @@ var QUERY = require('../queries/index.js');
  * @function removeEdge
  * @desc removes an edge between 2 specified vertices; then it removes the
  * 	"from" vertex if it is "orphaned" (i.e. not connected
- * @param conclusionId => conclusion to remove
- * @param argId => argument to remove from
- * @param authorId => author of argument
+ * @param from => the "from" vertex of the edge
+ * @param to => the "to" vertex of the edge
+ * @param author => author of argument (identifier)
  * @param callback => function to call (without parameters) when done
  \******************************************************************************/
 exports.removeEdge = function(edgeType, from, to, author, callback) {
