@@ -1,6 +1,6 @@
 /******************************************************************************\
- * @file api/controllers/controller.premise.js
- * @description premise controller
+ * @file api/controllers/controller.comment.js
+ * @description comment controller
  * @author Tyler Yasaka 
 \******************************************************************************/
 
@@ -31,7 +31,7 @@ exports.create = (statement, subjectId, author, callback) => {
 		function(stmtId) {
 			DB.e.comment.save({author: author}, stmtId, subjectId)
 			.then( result => {
-				callback( {_id: stmtId} );
+				callback( LIB.successMsg({_id: stmtId}) );
 			});
 		}
 		
@@ -44,15 +44,15 @@ exports.create = (statement, subjectId, author, callback) => {
  * @param author => fetch arguments by this user
  * @param callback => function to call (with result parameter) when done
 \******************************************************************************/
-exports.list = function(author, callback) {
+exports.listForUser = function(author, callback) {
 	DB.e.comment.byExample({author: author}).then( data => {
-		callback(data._result);
+		callback( LIB.successMsg(data._result) );
 	});
 }
 
 /******************************************************************************\
  * @function remove
- * @desc remove a premise from an argument, and delete the statement if not
+ * @desc remove a comment from an argument, and delete the statement if not
  * 	otherwise referenced by the user's arguments
  * @param subjectId => subject of comment (identifier)
  * @param commentKey => comment statement identifier
@@ -63,6 +63,6 @@ exports.remove = (subjectId, commentKey, author, callback) => {
 	var commentId = 'statement/' + commentKey;
 	
 	LIB.removeEdge('comment', commentId, subjectId, author, () => {
-		callback( {success: true} );
+		callback( LIB.successMsg({}) );
 	});
 }

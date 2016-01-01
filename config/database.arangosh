@@ -37,9 +37,12 @@ var edgeDefinitions = [
 	graph_module._relation("comment", ["statement"], ["statement","argument"])
 ];
 
+//Define "orphan" (unconnected) collections
+var orphanCollections = ["user"];
+
 //Create graph
 var allGraphs = graph_module._list();
 if(allGraphs.indexOf(graphName) != -1){
 	graph_module._drop(graphName, true);
 }
-graph_module._create(graphName,edgeDefinitions);
+graph_module._create(graphName, edgeDefinitions, orphanCollections);

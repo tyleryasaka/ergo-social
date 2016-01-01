@@ -7,6 +7,25 @@
 var ASYNC = require('async');
 var LIB = require('./lib.js');
 var DB = require('../database/index.js');
+var QUERY = require('../queries/index.js');
+
+/******************************************************************************\
+ * @function get
+ * @desc get statement details and comments for that statement
+ * @param stmtKey => statement identifier
+ * @param callback => function to call (with result parameter) when done
+\******************************************************************************/
+exports.get = function(stmtKey, callback) {
+	DB.conn.query(
+		QUERY.getStatement,
+		{
+			graphName: DB.graphName,
+			stmtId: "statement/" + stmtKey
+		}
+	).then( cursor => {
+		callback( LIB.successMsg(cursor._result[0]) );
+	});
+}
 
 /******************************************************************************\
  * @function remove
@@ -22,6 +41,6 @@ exports.update = (key, statement, author, callback) => {
 		{_key: key, author: author},
 		statement
 	).then( () => {
-		callback( {success: true} );
+		callback( LIB.successMsg({}) );
 	});
 }

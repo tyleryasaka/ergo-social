@@ -5,6 +5,7 @@
 \******************************************************************************/
 
 var ASYNC = require('async');
+var CRYPTO = require('crypto');
 var DB = require('../database/index.js');
 var QUERY = require('../queries/index.js');
 
@@ -16,7 +17,7 @@ var QUERY = require('../queries/index.js');
  * @param to => the "to" vertex of the edge
  * @param author => author of argument (identifier)
  * @param callback => function to call (without parameters) when done
- \******************************************************************************/
+\******************************************************************************/
 exports.removeEdge = function(edgeType, from, to, author, callback) {
 	
 	ASYNC.waterfall([
@@ -56,4 +57,34 @@ exports.removeEdge = function(edgeType, from, to, author, callback) {
 		}
 	
 	]);
+}
+
+/******************************************************************************\
+ * @function encrypt
+ * @desc encrypts a string with md5
+ * @param str => string to encrypt
+ * @return encrypted string
+\******************************************************************************/
+exports.encrypt = function(str){
+	return CRYPTO.createHash('md5').update(str).digest('hex');
+}
+
+/******************************************************************************\
+ * @function errMsg
+ * @desc format an error message
+ * @param message => the error message (string or object)
+ * @return formatted message
+\******************************************************************************/
+exports.errMsg = function(message) {
+	return {status: 'error', message: message};
+}
+
+/******************************************************************************\
+ * @function successMsg
+ * @desc format a success message
+ * @param data => the data to return (string or object)
+ * @return formatted message
+\******************************************************************************/
+exports.successMsg = function(data) {
+	return {status: 'success', data: data};
 }

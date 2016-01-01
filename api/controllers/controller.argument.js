@@ -20,48 +20,54 @@ var QUERY = require('../queries/index.js');
 \******************************************************************************/
 exports.create = function(argument, conclusion, author, callback) {
 	
-	ASYNC.waterfall([
-	
-		// Create argument
-		function(next) {
-			DB.v.argument.save(argument).then( result => {
-				next(null, result.vertex._id);
-			});
-		},
-		
-		// Create conclusion statement or use existing one
-		function(argId, next) {
-			if(typeof conclusion._key == 'undefined') {
-				DB.v.statement.save(conclusion).then( result => {
-					next(null, argId, result.vertex._id);
+	ASYNC.waterfall(
+		[
+			// Create argument
+			function(next) {
+				DB.v.argument.save(argument).then( result => {
+					next(null, result.vertex._id);
 				});
-			} else {
-				//ensure the conclusion is owned by this user
-				DB.v.statement.byExample(
-					{_key: conclusion._key, author: author}
-				).then( data => {
-					var stmtId = null;
-					if(data._result.length > 0){
-						stmtId = 'statement/' + conclusion._key;
-					}
-					next(null, argId, stmtId);
-				});
-			}
-		},
-		
-		// Connect statement to argument as conclusion
-		function(argId, stmtId) {
-			if(stmtId) {
+			},
+			
+			// Create conclusion statement or use existing one
+			function(argId, next) {
+				if(typeof conclusion._key == 'undefined') {
+					DB.v.statement.save(conclusion).then( result => {
+						next(null, argId, result.vertex._id);
+					});
+				} else {
+					//ensure the conclusion is owned by this user
+					DB.v.statement.byExample(
+						{_key: conclusion._key, author: author}
+					).then( data => {
+						if(data._result.length > 0){
+							stmtId = 'statement/' + conclusion._key;
+							next(null, argId, stmtId);
+						} else {
+							next( LIB.errMsg('Statement must be owned to be a conclusion') );
+						}
+					});
+				}
+			},
+			
+			// Connect statement to argument as conclusion
+			function(argId, stmtId, next) {
 				DB.e.conclusion.save({author: author}, stmtId, argId).then( () => {
 					var result = {argument: argId, conclusion: stmtId};
-					callback(result);
+					next(null, result);
 				});
-			}	else {
-				callback( {success: false} );
+			}
+		],
+		
+		function(err, result) {
+			if(err) {
+				callback(err);
+			} else {
+				callback( LIB.successMsg(result) );
 			}
 		}
 	
-	]);
+	);
 }
 
 /******************************************************************************\
@@ -72,7 +78,7 @@ exports.create = function(argument, conclusion, author, callback) {
 \******************************************************************************/
 exports.list = function(author, callback) {
 	DB.v.argument.byExample({author: author}).then( data => {
-		callback(data._result);
+		callback( LIB.successMsg(data._result) );
 	});
 }
 
@@ -90,7 +96,7 @@ exports.get = function(key, callback) {
 			argId: "argument/" + key
 		}
 	).then( cursor => {
-		callback(cursor._result[0]);
+		callback( LIB.successMsg(cursor._result[0]) );
 	});
 }
 
@@ -107,7 +113,7 @@ exports.update = function(key, argument, author, callback) {
 		{_key: key, author: author},
 		argument
 	).then( ()=> {
-		callback( {success: true} );
+		callback( LIB.successMsg({}) );
 	});
 }
 
@@ -175,7 +181,7 @@ exports.remove = function(argKey, author, callback) {
 			DB.v.argument.removeByExample(
 				{_id: argId, author: author}
 			).then( () => {
-				callback( {success: true} );
+				callback( LIB.successMsg({}) );
 			});
 		}
 		

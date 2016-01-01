@@ -39,7 +39,7 @@ exports.create = (premise, author, callback) => {
 			var stmtId = 'statement/' + stmtKey;
 			DB.e.premise.save({author: author}, stmtId, argId)
 			.then( result => {
-				callback( {_id: stmtId} );
+				callback( LIB.successMsg({_id: stmtId}) );
 			});
 		}
 		
@@ -60,6 +60,6 @@ exports.remove = (argKey, premiseKey, author, callback) => {
 	var premiseId = 'statement/' + premiseKey;
 	
 	LIB.removeEdge('premise', premiseId, argId, author, () => {
-		callback( {success: true} );
+		callback( LIB.successMsg({}) );
 	});
 }

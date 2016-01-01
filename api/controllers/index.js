@@ -4,6 +4,7 @@
  * @author: Tyler Yasaka 
 \******************************************************************************/
 
+exports.account = require('./controller.account.js');
 exports.argument = require('./controller.argument.js');
 exports.premise = require('./controller.premise.js');
 exports.comment = require('./controller.comment.js');

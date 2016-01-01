@@ -1,0 +1,5 @@
+// For testing only. Create user for testing.
+
+db._useDatabase("ergo");
+//decrypted password is '123'
+db.user.save({_key: 'test', password: '202cb962ac59075b964b07152d234b70'});
