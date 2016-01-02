@@ -3,11 +3,11 @@ var app = angular.module('ergo', ['ngRoute', 'ngResource']);
 app.config(function($routeProvider, $locationProvider) { 
   $routeProvider 
     .when('/', {
-			controller: 'ArgumentController',
+			controller: 'ArgumentListController',
       templateUrl: 'views/argument/list.html' 
     })
     .when('/argument/:key', { 
-      controller: 'ArgumentController', 
+      controller: 'ArgumentDetailController', 
       templateUrl: 'views/argument/single.html' 
     })
     .otherwise({ 

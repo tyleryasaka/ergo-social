@@ -1,28 +1,7 @@
-<div class="ui menu">
-	<div class="ui container">
-		<div class="header item">
-			ergo
-		</div>
-		<div class="right menu">
-			<a class="item">
-				My arguments
-			</a>
-		</div>
-	</div>
-</div>
 
-<div class="ui grid container">
-	<div class="row">
-		<div class="column">
-			<div class="content">
-				<h1>My arguments</h1>
-				<div class="ui big middle aligned selection very relaxed celled list">
-					<div class="item">
-						Make me dynamic!
-					</div>
-				</div>
-			</div>
-		</div>
-		</div>
+<h1>My arguments</h1>
+<div class="ui big middle aligned selection very relaxed celled list">
+	<div class="item" ng-repeat="argument in arguments" ng-click="goToArgument(argument._key)">
+		{{argument.title}}
 	</div>
 </div>

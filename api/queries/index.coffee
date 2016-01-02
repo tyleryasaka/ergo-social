@@ -1,7 +1,6 @@
 #
 # @file: queries.coffee
 # 
-# @application: ergo
 # @author: Tyler Yasaka
 # @description compiles into queries.js
 # 	all AQL quries are retrieved from here

@@ -1,6 +1,7 @@
-app.controller('ArgumentController', [
+app.controller('ArgumentListController', [
 	'$scope',
-	function($scope) {
+	'$location',
+	function($scope, location) {
 		$scope.arguments = [
 			{
 				"isDeductive": true,
@@ -30,5 +31,9 @@ app.controller('ArgumentController', [
 				"_key": "26896038899"
 			}
 		];
+		$scope.goToArgument = function(key) {
+			//location.url('/argument/'+argument._key);
+			console.log(key);
+		}
 	}
 ]);

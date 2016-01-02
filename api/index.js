@@ -75,7 +75,7 @@ var SERVER = APP.listen(PORT, () => {
  * routes
 \******************************************************************************/
 
-APP.post('/0.0/account', (req, res) => {
+APP.post('/api/0.0/account', (req, res) => {
 	var username = req.body.username;
 	var password = req.body.password;
 	
@@ -84,7 +84,7 @@ APP.post('/0.0/account', (req, res) => {
 	});
 });
 	
-APP.put('/0.0/account/password', PROTECTED(), (req, res) => {
+APP.put('/api/0.0/account/password', PROTECTED(), (req, res) => {
 	var oldPass = req.body.oldPassword;
 	var newPass = req.body.newPassword;
 	
@@ -93,28 +93,28 @@ APP.put('/0.0/account/password', PROTECTED(), (req, res) => {
 	});
 });
 
-APP.get('/0.0/login', (req, res) => {
-	var response = {isLoggedIn: false};
+APP.get('/api/0.0/login', (req, res) => {
+	var response = {status: "success", data: {isLoggedIn: false}};
 	if(typeof req.user != 'undefined'){
-		response.isLoggedIn = true;
-		response.user = req.user;
+		response.data.isLoggedIn = true;
+		response.data.user = req.user;
 	}
 	res.send(response);
 });
 
-APP.post('/0.0/login',
+APP.post('/api/0.0/login',
 	PASSPORT.authenticate('local', {
-		successReturnToOrRedirect: '/0.0/argument',
+		successReturnToOrRedirect: '/api/0.0/argument',
 		failureRedirect: '/login'
 	})
 );
 
-APP.get('/0.0/logout', (req, res) => {
+APP.get('/api/0.0/logout', (req, res) => {
 	req.logout();
-	res.send({});//res.redirect('/0.0/login');
+	res.send({});//res.redirect('/api/0.0/login');
 });
 
-APP.post('/0.0/argument', PROTECTED(), (req, res) => {
+APP.post('/api/0.0/argument', PROTECTED(), (req, res) => {
 	var argument = FILTER.argument(req.body.argument, req.user);
 	var conclusion = FILTER.conclusion(req.body.conclusion, req.user);
 	
@@ -123,13 +123,13 @@ APP.post('/0.0/argument', PROTECTED(), (req, res) => {
 	});
 });
 
-APP.get('/0.0/argument', PROTECTED(), (req, res) => {
+APP.get('/api/0.0/argument', PROTECTED(), (req, res) => {
 	CONTROLLER.argument.list( req.user, result => {
 		res.send(result);
 	});
 });
 
-APP.get('/0.0/argument/:key', (req, res) => {
+APP.get('/api/0.0/argument/:key', (req, res) => {
 	var key = req.params.key;
 	
 	CONTROLLER.argument.get(key, result => {
@@ -137,7 +137,7 @@ APP.get('/0.0/argument/:key', (req, res) => {
 	});
 });
 
-APP.put('/0.0/argument/:key', PROTECTED(), (req, res) => {
+APP.put('/api/0.0/argument/:key', PROTECTED(), (req, res) => {
 	var key = req.params.key;
 	var argument = FILTER.argument(req.body, req.user);
 	
@@ -146,7 +146,7 @@ APP.put('/0.0/argument/:key', PROTECTED(), (req, res) => {
 	});
 });
 
-APP.delete('/0.0/argument/:key', PROTECTED(), (req, res) => {
+APP.delete('/api/0.0/argument/:key', PROTECTED(), (req, res) => {
 	var key = req.params.key;
 	
 	CONTROLLER.argument.remove(key, req.user, result => {
@@ -154,9 +154,9 @@ APP.delete('/0.0/argument/:key', PROTECTED(), (req, res) => {
 	});
 });
 
-//APP.get('/0.0/profile', CONTROLLER.profile.get);
+//APP.get('/api/0.0/profile', CONTROLLER.profile.get);
 
-APP.post('/0.0/premise', PROTECTED(), (req, res) => {
+APP.post('/api/0.0/premise', PROTECTED(), (req, res) => {
 	var premise = FILTER.premise(req.body, req.user);
 	
 	CONTROLLER.premise.create(premise, req.user, result => {
@@ -164,7 +164,7 @@ APP.post('/0.0/premise', PROTECTED(), (req, res) => {
 	});
 });
 
-APP.delete('/0.0/premise/:argKey/:premiseKey', PROTECTED(), (req, res) => {
+APP.delete('/api/0.0/premise/:argKey/:premiseKey', PROTECTED(), (req, res) => {
 	var argKey = req.params.argKey;
 	var premiseKey = req.params.premiseKey;
 	
@@ -173,7 +173,7 @@ APP.delete('/0.0/premise/:argKey/:premiseKey', PROTECTED(), (req, res) => {
 	});
 });
 
-APP.post('/0.0/comment', PROTECTED(), (req, res) => {
+APP.post('/api/0.0/comment', PROTECTED(), (req, res) => {
 	var statement = FILTER.statement(req.body.statement, req.user);
 	var subjectId = req.body.subject._id;
 	
@@ -182,13 +182,13 @@ APP.post('/0.0/comment', PROTECTED(), (req, res) => {
 	});
 });
 
-APP.get('/0.0/comment', PROTECTED(), (req, res) => {
+APP.get('/api/0.0/comment', PROTECTED(), (req, res) => {
 	CONTROLLER.comment.listForUser( req.user, result => {
 		res.send(result);
 	});
 });
 
-APP.delete('/0.0/comment/:subjectType/:subjectKey/:commentKey', PROTECTED(), (req, res) => {
+APP.delete('/api/0.0/comment/:subjectType/:subjectKey/:commentKey', PROTECTED(), (req, res) => {
 	var subjectId = req.params.subjectType + '/' + req.params.subjectKey;
 	var commentKey = req.params.commentKey;
 	
@@ -197,7 +197,7 @@ APP.delete('/0.0/comment/:subjectType/:subjectKey/:commentKey', PROTECTED(), (re
 	});
 });
 
-APP.get('/0.0/statement/:stmtKey', (req, res) => {
+APP.get('/api/0.0/statement/:stmtKey', (req, res) => {
 	var stmtKey = req.params.stmtKey;
 	
 	CONTROLLER.statement.get(stmtKey, result => {
@@ -205,7 +205,7 @@ APP.get('/0.0/statement/:stmtKey', (req, res) => {
 	});
 });
 
-APP.put('/0.0/statement/:key', PROTECTED(), (req, res) => {
+APP.put('/api/0.0/statement/:key', PROTECTED(), (req, res) => {
 	var key = req.params.key;
 	var statement = FILTER.statement(req.body, req.user);
 	
