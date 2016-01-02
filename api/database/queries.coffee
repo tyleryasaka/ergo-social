@@ -1,5 +1,5 @@
 #
-# @file: queries.coffee
+# @file: api/database/queries.coffee
 # 
 # @author: Tyler Yasaka
 # @description compiles into queries.js
@@ -9,7 +9,7 @@
 #
 # to compile this into the javascript file:
 #
-# 	coffee --compile index.coffee
+# 	coffee --compile queries.coffee
 #
 
 exports.getArgument =

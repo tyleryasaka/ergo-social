@@ -1,13 +1,13 @@
 /******************************************************************************\
- * @file api/controllers/lib.js
+ * @file api/lib/lib.js
  * @description resuable data/functions for controllers
  * @author Tyler Yasaka 
 \******************************************************************************/
 
 var ASYNC = require('async');
 var CRYPTO = require('crypto');
-var DB = require('../database/index.js');
-var QUERY = require('../queries/index.js');
+var DB = require('../database/connect.js');
+var QUERY = require('../database/queries.js');
 
 /******************************************************************************\
  * @function removeEdge

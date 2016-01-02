@@ -1,5 +1,5 @@
 /******************************************************************************\
- * @file: api/controllers/index.js
+ * @file: api/controllers/controllers.js
  * @description: api controllers
  * @author: Tyler Yasaka 
 \******************************************************************************/

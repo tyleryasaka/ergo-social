@@ -5,8 +5,8 @@
 \******************************************************************************/
 
 var ASYNC = require('async');
-var LIB = require('./lib.js');
-var DB = require('../database/index.js');
+var LIB = require('../lib/lib.js');
+var DB = require('../database/connect.js');
 
 /******************************************************************************\
  * @function create

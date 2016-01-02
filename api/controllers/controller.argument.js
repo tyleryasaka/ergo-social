@@ -5,9 +5,9 @@
 \******************************************************************************/
 
 var ASYNC = require('async');
-var LIB = require('./lib.js');
-var DB = require('../database/index.js');
-var QUERY = require('../queries/index.js');
+var LIB = require('../lib/lib.js');
+var DB = require('../database/connect.js');
+var QUERY = require('../database/queries.js');
 
 /******************************************************************************\
  * @function create

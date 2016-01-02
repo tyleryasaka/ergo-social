@@ -1,36 +1,62 @@
-<head>
-	<link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.7/semantic.min.css">
-</head>
-<body ng-app="ergo">
-	<div class="ui menu">
-		<div class="ui container">
-			<div class="header item">
-				ergo
-			</div>
-			<div class="right menu">
-				<a class="item">
-					My arguments
-				</a>
+<html>
+
+  <head>
+    <title>ergo</title>
+    
+    <base href="/">
+    
+    <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.7/semantic.min.css">
+
+    <!-- 1. Load libraries -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.0/angular2-polyfills.js"></script>
+    <script src="app/lib/systemjs/system.src.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.0/Rx.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.0/angular2.dev.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.0/router.js"></script>
+
+    <!-- 2. Configure SystemJS -->
+    <script>
+      System.config({
+        packages: {        
+          app: {
+            format: 'register',
+            defaultExtension: 'js'
+          }
+        }
+      });
+      System.import('app/boot').then(null, console.error.bind(console));
+    </script>
+
+  </head>
+
+  <!-- 3. Display the application -->
+  <body>
+		<div class="ui menu">
+			<div class="ui container">
+				<div class="header item">
+					ergo
+				</div>
+				<div class="right menu">
+					<a class="item">
+						My arguments
+					</a>
+				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="ui grid container">
-		<div class="row">
-			<div class="column">
-				<div class="content">
-					<ng-view>
-					</ng-view>
+		<div class="ui grid container">
+			<div class="row">
+				<div class="column">
+					<div class="content">
+						<app>
+							Loading...
+						</app>
 				</div>
 			</div>
 			</div>
 		</div>
 	</div>
 	
-	<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0-rc.0/angular.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0-rc.0/angular-route.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0-rc.0/angular-resource.min.js"></script>
-	<!--script src="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.7/semantic.min.js"></script-->
-	<script src="/js/app.js"></script>
-	<script src="/js/controllers.js"></script>
-</body>
+  </body>
+
+</html>

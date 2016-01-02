@@ -1,5 +1,5 @@
 /******************************************************************************\
- * @file api/database/index.js
+ * @file api/database/connect.js
  * @description ArangoDB database connector
  * @author Tyler Yasaka 
 \******************************************************************************/

@@ -4,19 +4,23 @@
   "description": "",
   "author": "Tyler Yasaka <contact@tyleryasaka.me>",
   "contributors": [{
-  "name": "Tyler Yasaka",
-  "email": "contact@tyleryasaka.me",
-  "private": true
-}],
+		"name": "Tyler Yasaka",
+		"email": "contact@tyleryasaka.me",
+		"private": true
+	}],
+	"repository" : {
+		"type" : "git",
+		"url" : "https://github.com/tyleryasaka/ergo.git"
+	},
   "dependencies": {
-		"arangojs": "4.2.1",
-		"async": "1.4.2",
-		"body-parser": "1.13.3",
-		"connect-ensure-login": "git://github.com/tyleryasaka/connect-ensure-login#master",
-		"crypto": "0.0.3",
-    "express": "4.13.3",
-    "express-session": "1.11.3",
-    "passport": "0.3.2",
-    "passport-local": "1.0.0"
+			"arangojs": "4.2.1",
+			"async": "1.4.2",
+			"body-parser": "1.13.3",
+			"connect-ensure-login": "git://github.com/tyleryasaka/connect-ensure-login#master",
+			"crypto": "0.0.3",
+			"express": "4.13.3",
+			"express-session": "1.11.3",
+			"passport": "0.3.2",
+			"passport-local": "1.0.0"
   }
 }
