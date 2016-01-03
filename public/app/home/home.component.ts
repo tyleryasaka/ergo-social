@@ -1,7 +1,7 @@
 import {Component, OnInit} from 'angular2/core';
 
 @Component({
-    selector: 'argument-list',
+    selector: 'home',
 		template: `
 			<h1>{{title}}</h1>
 			`,
@@ -9,8 +9,8 @@ import {Component, OnInit} from 'angular2/core';
 		providers: []
 })
 
-export class ArgumentListComponent {
-  public title = 'Tour of Heroes';
+export class HomeComponent {
+  public title = 'Home';
 	
   ngOnInit() {
     //

@@ -18,3 +18,4 @@ While developing in angularjs with typescript, run typescript with watch option,
 
 To run the server (from `/`):
     node server.js
+

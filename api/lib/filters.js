@@ -5,7 +5,7 @@
 \******************************************************************************/
 
 /******************************************************************************\
- * @function filter.argument
+ * @function argument
  * @desc Sanitizes input in the sense of not allowing user to create
  * 	custom document fields. Also easier to maintain fields in one place.
  * @param input => unfiltered data from user
@@ -28,7 +28,7 @@ exports.argument = function(input, author) {
 }
 
 /******************************************************************************\
- * @function filter.statement
+ * @function statement
  * @desc Sanitizes input in the sense of not allowing user to create
  * 	custom document fields. Also easier to maintain fields in one place.
  * @param input => unfiltered data from user
@@ -45,7 +45,7 @@ exports.statement = function(input, author) {
 }
 
 /******************************************************************************\
- * @function filter.premise
+ * @function premise
  * @desc Sanitizes input in the sense of not allowing user to create
  * 	custom document fields. Also easier to maintain fields in one place.
  * @param input => unfiltered data from user
@@ -70,7 +70,7 @@ exports.premise = function(input, author) {
 }
 
 /******************************************************************************\
- * @function filter.premise
+ * @function premise
  * @desc Sanitizes input in the sense of not allowing user to create
  * 	custom document fields. Also easier to maintain fields in one place.
  * @param input => unfiltered data from user
@@ -83,7 +83,7 @@ exports.conclusion = function(input, author) {
 	if(typeof input._key != 'undefined'){
 		output._key = input._key;
 	} else {
-		output = FILTER.statement(input, author);
+		output = exports.statement(input, author);
 	}
 	
 	return output;

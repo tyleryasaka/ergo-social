@@ -88,3 +88,14 @@ exports.errMsg = function(message) {
 exports.successMsg = function(data) {
 	return {status: 'success', data: data};
 }
+
+/******************************************************************************\
+ * @function protect
+\******************************************************************************/
+exports.protect = function(req, res, next) {
+	if(!req.isAuthenticated()) {
+		res.send( exports.errMsg('unauthorized') );
+	} else {
+		next();
+	}
+}
