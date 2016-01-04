@@ -24,10 +24,14 @@ export class APIService {
 		return this.httpGet('/logout/');
 	}
 	
-	getArguments(router) {
+	argumentList(router) {
 		var promise = this.httpGet('/argument/');
 		this.ensureLoggedIn(promise, router);
 		return promise;
+	}
+	
+	argumentDetail(argKey) {
+		return this.httpGet('/argument/' + argKey);
 	}
 	
 	private httpGet = function(url) {

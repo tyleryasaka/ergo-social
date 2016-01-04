@@ -6,6 +6,7 @@ import {ArgumentListComponent} from './argument-list/argument.list.component';
 import {ArgumentDetailComponent} from './argument-detail/argument.detail.component';
 import {LibService} from '../services/lib/lib.service';
 import {APIService} from '../services/api/api.service';
+import {Credentials} from '../classes/classes';
 
 @Component({
     selector: 'app',
@@ -49,6 +50,12 @@ import {APIService} from '../services/api/api.service';
 						</div>
 						<div class="content">
 							<form class="ui form" (keypress)="lib.onEnter($event, login)">
+								<div class="ui negative message" id="loginErrors" *ngIf="loginErrors.length">
+									<div class="header">Try again</div>
+									<ul class="list">
+										<li *ngFor="#loginError of loginErrors">{{loginError}}</li>
+									</ul>
+								</div>
 								<div class="field">
 									<label>Username</label>
 									<input type="text" placeholder="Username" [(ngModel)]="credentials.username">
@@ -81,10 +88,8 @@ import {APIService} from '../services/api/api.service';
 
 export class AppComponent {
   public isLoggedIn = false;
-  public credentials: any = {
-		username: '',
-		password: ''
-	}
+  public credentials: Credentials = new Credentials();
+	public loginErrors = [];
   
   constructor(
 		private api: APIService,
@@ -93,19 +98,24 @@ export class AppComponent {
 	) {}
   
   loginModal = () => {
+		this.loginErrors = [];
+		this.credentials = new Credentials();
 		$('.ui.modal#login-modal').modal('show');
 	}
 	
 	login = () => {
 		this.api.login(this.credentials).then(res => {
+			this.loginErrors = [];
 			if(res.status == "success") {
 				this.isLoggedIn = true;
 				this.router.navigate(['ArgumentList']).then( () => {
 					$('.ui.modal#login-modal').modal('hide');
 				});
 			} else {
-				//
+				this.loginErrors.push('Invalid credentials');
+				setTimeout( () => $('#loginErrors').transition('pulse'), 100);
 			}
+			this.credentials.password = ''; // don't let this data hang around
 		});
 	}
 	

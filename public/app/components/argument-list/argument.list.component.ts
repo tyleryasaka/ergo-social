@@ -1,5 +1,5 @@
 import {Component, OnInit} from 'angular2/core';
-import {RouteConfig, RouterOutlet, Router} from 'angular2/router';
+import {RouteConfig, RouterOutlet, ROUTER_DIRECTIVES, Router} from 'angular2/router';
 import {APIService} from '../../services/api/api.service';
 
 @Component({
@@ -7,12 +7,12 @@ import {APIService} from '../../services/api/api.service';
 		template: `
 			<h1>{{title}}</h1>
 			<div class="ui big middle aligned selection very relaxed celled list">
-				<div class="item" *ngFor="#argument of arguments">
+				<a class="item" *ngFor="#argument of arguments" [routerLink]="['ArgumentDetail', {key: argument._key}]">
 					{{argument.title}}
-				</div>
+				</a>
 			</div>
 			`,
-		directives: [RouterOutlet],
+		directives: [RouterOutlet, ROUTER_DIRECTIVES],
 		providers: []
 })
 
@@ -26,7 +26,7 @@ export class ArgumentListComponent {
 	) { }
 	
   ngOnInit() {
-    this.api.getArguments(this.router).then(res => {
+    this.api.argumentList(this.router).then(res => {
 			this.arguments = res.data 
 		});
   }

@@ -53,10 +53,13 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1) {
                 APIService.prototype.logout = function () {
                     return this.httpGet('/logout/');
                 };
-                APIService.prototype.getArguments = function (router) {
+                APIService.prototype.argumentList = function (router) {
                     var promise = this.httpGet('/argument/');
                     this.ensureLoggedIn(promise, router);
                     return promise;
+                };
+                APIService.prototype.argumentDetail = function (argKey) {
+                    return this.httpGet('/argument/' + argKey);
                 };
                 APIService.prototype.ensureLoggedIn = function (promise, router) {
                     promise.then(function (res) {

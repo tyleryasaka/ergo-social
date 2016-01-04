@@ -30,15 +30,15 @@ System.register(['angular2/core', 'angular2/router', '../../services/api/api.ser
                 }
                 ArgumentListComponent.prototype.ngOnInit = function () {
                     var _this = this;
-                    this.api.getArguments(this.router).then(function (res) {
+                    this.api.argumentList(this.router).then(function (res) {
                         _this.arguments = res.data;
                     });
                 };
                 ArgumentListComponent = __decorate([
                     core_1.Component({
                         selector: 'argument-list',
-                        template: "\n\t\t\t<h1>{{title}}</h1>\n\t\t\t<div class=\"ui big middle aligned selection very relaxed celled list\">\n\t\t\t\t<div class=\"item\" *ngFor=\"#argument of arguments\">\n\t\t\t\t\t{{argument.title}}\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t",
-                        directives: [router_1.RouterOutlet],
+                        template: "\n\t\t\t<h1>{{title}}</h1>\n\t\t\t<div class=\"ui big middle aligned selection very relaxed celled list\">\n\t\t\t\t<a class=\"item\" *ngFor=\"#argument of arguments\" [routerLink]=\"['ArgumentDetail', {key: argument._key}]\">\n\t\t\t\t\t{{argument.title}}\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\t",
+                        directives: [router_1.RouterOutlet, router_1.ROUTER_DIRECTIVES],
                         providers: []
                     }), 
                     __metadata('design:paramtypes', [router_1.Router, api_service_1.APIService])

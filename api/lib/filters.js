@@ -62,7 +62,7 @@ exports.premise = function(input, author) {
 		if(input.statement._key){
 			output.statement._key = input.statement._key;
 		} else {
-			output.statement = FILTER.statement(input.statement, author);
+			output.statement = exports.statement(input.statement, author);
 		}
 	}
 	
