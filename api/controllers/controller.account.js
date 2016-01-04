@@ -86,18 +86,6 @@ exports.updatePassword = function(oldPass, newPass, username, callback) {
  * @param password => account password
  * @param callback => function to call (with result parameter) when done
 \******************************************************************************/
-/*exports.authenticate = (username, password, callback) => {
-	var password = LIB.encrypt(password);
-	
-	DB.v.user.byExample({_key: username, password: password})
-	.then( data => {
-		if(data._result.length > 0){
-			callback(null, data._result[0]);
-		} else {
-			callback(LIB.errMsg('Invalid credentials'), false);
-		}
-	});
-}*/
 exports.authenticate = (username, password, callback) => {
 	var password = LIB.encrypt(password);
 	
@@ -106,7 +94,7 @@ exports.authenticate = (username, password, callback) => {
 		if(data._result.length > 0){
 			callback(null, data._result[0]);
 		} else {
-			callback(null, false);
+			callback('error');
 		}
 	});
 }

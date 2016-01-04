@@ -12,15 +12,28 @@
 		"type" : "git",
 		"url" : "https://github.com/tyleryasaka/ergo.git"
 	},
+	"scripts": {
+    "tsc": "tsc",
+    "tsc:w": "tsc -w"
+  },
   "dependencies": {
 			"arangojs": "4.2.1",
 			"async": "1.4.2",
 			"body-parser": "1.13.3",
-			"connect-ensure-login": "git://github.com/tyleryasaka/connect-ensure-login#master",
 			"crypto": "0.0.3",
 			"express": "4.13.3",
 			"express-session": "1.11.3",
 			"passport": "0.3.2",
-			"passport-local": "1.0.0"
+			"passport-local": "1.0.0",
+			"angular2": "2.0.0-beta.0",
+			"systemjs": "0.19.6",
+			"es6-promise": "^3.0.2",
+			"es6-shim": "^0.33.3",
+			"reflect-metadata": "0.1.2",
+			"rxjs": "5.0.0-beta.0",
+			"zone.js": "0.5.10"
+  },
+  "devDependencies": {
+    "typescript": "^1.7.3"
   }
 }

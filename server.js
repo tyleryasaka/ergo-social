@@ -18,10 +18,8 @@ var SESSION_SECRET = 'test123'; // sign session id cookie
 var BODY_PARSER = require('body-parser');
 var EXPRESS = require('express');
 var EXPRESS_SESSION = require('express-session');
-//var APP = require('express').Router();
 var PASSPORT = require('passport');
 var STRATEGY = require('passport-local').Strategy;
-//var PROTECTED = require('connect-ensure-login').ensureLoggedIn;
 
 /******************************************************************************\
  * custom modules
@@ -91,13 +89,13 @@ APP.get('/api/0.0/login', (req, res) => {
 	if( req.isAuthenticated() ){
 		isLoggedIn = true;
 	}
-	res.send( LIB.successMsg( {isLoggedIn: isLoggedIn} ) );
+	res.send( LIB.successMsg( isLoggedIn ) );
 });
 
 APP.post('/api/0.0/login', function(req, res, next) {
   PASSPORT.authenticate('local', function(err, user, info) {
-		if(err) {
-			return res.send(err);
+		if(err || !user) {
+			return res.send(LIB.errMsg('Invalid credentials'));
 		} else {
 			req.logIn(user, function(err) {
 				return res.send(LIB.successMsg({}));
@@ -115,9 +113,15 @@ APP.post('/api/0.0/argument', LIB.protect, (req, res) => {
 	var argument = FILTER.argument(req.body.argument, req.user);
 	var conclusion = FILTER.conclusion(req.body.conclusion, req.user);
 	
-	CONTROLLER.argument.create(argument, conclusion, req.user, result => {
-		res.send(result);
-	});
+	setTimeout( () => {
+		
+		console.log('check');
+	
+		CONTROLLER.argument.create(argument, conclusion, req.user, result => {
+			res.send(result);
+		});
+		
+	}, 2000);
 });
 
 APP.get('/api/0.0/argument', LIB.protect, (req, res) => {
@@ -216,7 +220,7 @@ APP.put('/api/0.0/statement/:key', LIB.protect, (req, res) => {
 \******************************************************************************/
 
 // serve static content with angularjs
-APP.use('/app', EXPRESS.static(__dirname + '/public/app'));
+APP.use('/', EXPRESS.static(__dirname + '/public')); 
 
 // all other requests go to public/index.html
 APP.get('/*', (req, res) => {

@@ -21,8 +21,10 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1) {
         execute: function() {
             APIService = (function () {
                 function APIService(http) {
+                    this.apiUrl = '/api/0.0';
                     this.httpGet = function (url) {
                         var _this = this;
+                        url = this.apiUrl + url;
                         var promise = new Promise(function (resolve, reject) {
                             _this.http.get(url).subscribe(function (res) { resolve(res.json()); });
                         });
@@ -31,6 +33,7 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1) {
                     this.httpPost = function (url, params) {
                         var _this = this;
                         var headers = new http_1.Headers();
+                        url = this.apiUrl + url;
                         headers.append('Content-Type', 'application/json');
                         var params = JSON.stringify(params);
                         var promise = new Promise(function (resolve, reject) {
@@ -41,11 +44,26 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1) {
                     };
                     this.http = http;
                 }
-                APIService.prototype.login = function (credentials) {
-                    return this.httpPost('/api/0.0/login/', credentials);
+                APIService.prototype.isLoggedIn = function () {
+                    return this.httpGet('/login/');
                 };
-                APIService.prototype.getArguments = function () {
-                    return this.httpGet('/api/0.0/argument/');
+                APIService.prototype.login = function (credentials) {
+                    return this.httpPost('/login/', credentials);
+                };
+                APIService.prototype.logout = function () {
+                    return this.httpGet('/logout/');
+                };
+                APIService.prototype.getArguments = function (router) {
+                    var promise = this.httpGet('/argument/');
+                    this.ensureLoggedIn(promise, router);
+                    return promise;
+                };
+                APIService.prototype.ensureLoggedIn = function (promise, router) {
+                    promise.then(function (res) {
+                        if (res.status == "error" && res.message == "unauthorized") {
+                            router.navigate(['Home']);
+                        }
+                    });
                 };
                 APIService = __decorate([
                     core_1.Injectable(), 

@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/router', '../../api/api.service'], function(exports_1) {
+System.register(['angular2/core', 'angular2/router', '../../services/api/api.service'], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -23,13 +23,16 @@ System.register(['angular2/core', 'angular2/router', '../../api/api.service'], f
             }],
         execute: function() {
             ArgumentListComponent = (function () {
-                function ArgumentListComponent(api) {
+                function ArgumentListComponent(router, api) {
+                    this.router = router;
                     this.api = api;
                     this.title = 'My arguments';
                 }
                 ArgumentListComponent.prototype.ngOnInit = function () {
                     var _this = this;
-                    this.api.getArguments().then(function (res) { return _this.arguments = res.data; });
+                    this.api.getArguments(this.router).then(function (res) {
+                        _this.arguments = res.data;
+                    });
                 };
                 ArgumentListComponent = __decorate([
                     core_1.Component({
@@ -38,7 +41,7 @@ System.register(['angular2/core', 'angular2/router', '../../api/api.service'], f
                         directives: [router_1.RouterOutlet],
                         providers: []
                     }), 
-                    __metadata('design:paramtypes', [api_service_1.APIService])
+                    __metadata('design:paramtypes', [router_1.Router, api_service_1.APIService])
                 ], ArgumentListComponent);
                 return ArgumentListComponent;
             })();

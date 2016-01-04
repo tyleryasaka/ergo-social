@@ -10,6 +10,8 @@
     "noImplicitAny": false
   },
   "exclude": [
+		"api",
+		"config",
     "node_modules"
   ]
 }

@@ -91,6 +91,10 @@ exports.successMsg = function(data) {
 
 /******************************************************************************\
  * @function protect
+ * @desc send error message if not logged in
+ * @param req => request object
+ * @param res => response object
+ * @param next => callback to continue through the express call chain
 \******************************************************************************/
 exports.protect = function(req, res, next) {
 	if(!req.isAuthenticated()) {
