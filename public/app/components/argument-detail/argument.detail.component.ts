@@ -124,7 +124,7 @@ export class ArgumentDetailComponent {
 	}
 	
   ngOnInit() {
-    this.api.argumentDetail(this.trail[0]).then(res => {
+    this.api.argumentDetail(this.trail[this.trail.length -1]).then(res => {
 			this.argument = res.data.argument;
 			this.premises = res.data.premises;
 			this.conclusion = res.data.conclusion;
