@@ -6,6 +6,14 @@ import {Argument, Statement, Conclusion, Premise, Comment} from '../../classes/c
 @Component({
     selector: 'argument-detail',
 		template: `
+			<div class="ui large breadcrumb">
+				<span *ngFor="#argument of trail; #i = index; #last = last">
+					<a class="section" (click)="goBackTo(i)" *ngIf="!last">{{argument.title}}</a>
+					<i *ngIf="!last" class="right angle icon divider"></i>
+					<span *ngIf="last">{{argument.title}}</span>
+				</span>
+				
+			</div>
 			<h1 class="ui center aligned header">{{argument.title}}</h1>
 			<div class="ui stackable mobile reversed divided grid">
 				<div class="six wide column">
@@ -22,7 +30,7 @@ import {Argument, Statement, Conclusion, Premise, Comment} from '../../classes/c
 						</div>
 						{{comment.statement.content}}
 						<div class="ergo-comments-footer" *ngIf="comment.subarguments.length || comment.comments.length">
-							<a class="ui small violet label ergo-comments-label" *ngIf="comment.subarguments.length">
+							<a class="ui small violet label ergo-comments-label" *ngIf="comment.subarguments.length" (click)="goTo(comment.subarguments[0])">
 								<i class="level down icon"></i>
 								{{comment.subarguments.length}}
 							</a>
@@ -71,7 +79,7 @@ import {Argument, Statement, Conclusion, Premise, Comment} from '../../classes/c
 						<div class="content">
 							{{premise.statement.content}}
 							<div class="ergo-comments-footer" *ngIf="premise.subarguments.length || premise.comments.length">
-								<a class="ui small violet label ergo-comments-label" *ngIf="premise.subarguments.length">
+								<a class="ui small violet label ergo-comments-label" *ngIf="premise.subarguments.length" (click)="goTo(premise.subarguments[0])">
 									<i class="level down icon"></i>
 									{{premise.subarguments.length}}
 								</a>
@@ -123,12 +131,48 @@ export class ArgumentDetailComponent {
 		this.trail = this.params.get('key').split('.');
 	}
 	
-  ngOnInit() {
+	goTo = item => {
+		this.trail.push(item.split('/')[1]);
+		this.load( () => this.updateUrl() );
+	}
+	
+	goBackTo = index => {
+		this.trail.splice( index + 1, this.trail.length - (index + 1) );
+		var lastItem = this.trail.length - 1;
+		this.trail[lastItem] = this.trail[lastItem]._key;
+		this.load( () => this.updateUrl() );
+	}
+	
+	load = callback => {
     this.api.argumentDetail(this.trail[this.trail.length -1]).then(res => {
 			this.argument = res.data.argument;
 			this.premises = res.data.premises;
 			this.conclusion = res.data.conclusion;
 			this.comments = res.data.comments;
+			this.trail[this.trail.length - 1] = this.argument;
+			if(callback) {
+				callback();
+			}
+		});
+	}
+	
+	updateUrl = () => {
+		var stringTrail = [];
+		for(var t in this.trail) {
+			stringTrail.push(this.trail[t]._key);
+		}
+		var url = stringTrail.join('.');
+		this.router.navigate(['ArgumentDetail', {key: url}]);
+	}
+	
+  ngOnInit() {
+		this.load( () => {
+			for(var t = 0; t < this.trail.length - 1; t++) {
+				var tCopy = t;
+				this.api.argumentDetail(this.trail[tCopy]).then(res => {
+					this.trail[tCopy] = res.data.argument;
+				});
+			}
 		});
   }
 }
